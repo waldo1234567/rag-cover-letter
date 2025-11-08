@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: cover-letter-generator
+    env : python
+    plan : free
+    buildCommand : pip install -r requirements.txt 
+    startCommand : python app.py
+    envVars:
+      - key: CHROMA_API_KEY
+        sync : false
+      - key : GOOGLE_API_KEY
+        sync : false
+      - key : DEEPL_API_KEY
+        sync : false
+ 

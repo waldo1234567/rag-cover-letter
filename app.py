@@ -282,7 +282,8 @@ def stream_response(company_profile, job_desc):
         input_guard.validate(draft)
         yield draft
     
-with gr.Blocks() as app:
+def create_app():
+    app = gr.Blocks()
     state = gr.State({})
     
     gr.Markdown("# AI Cover Letter Generator")
@@ -307,10 +308,15 @@ with gr.Blocks() as app:
     
     generate_btn.click(fn=stream_response, inputs=[company_profile, job_desc], outputs=[output_box])
     
+    return app
+    
 if __name__ == "__main__":
-    app.launch(
+    demo = create_app()
+    
+    demo.launch(
         server_name="0.0.0.0" if os.getenv("SPACE_ID") else "127.0.0.1",
-        server_port=7860
+        server_port=int(os.getenv("PORT", 7860)),
+        share=False
     )
     
 
