@@ -61,14 +61,8 @@ def upload_cv(pdf_file, user_id:str, replace: bool = True, namespace: str | None
     documents = loader.load()
     
     full_text = "\n\n".join([doc.page_content for doc in documents])
-    print(f"\n📄 Full CV length: {len(full_text)} characters")
     
-    sections = splic_cv_by_section(full_text=full_text)
-    
-    print(f"\n📂 FOUND SECTIONS:")
-    for section_name, content in sections.items():
-        print(f"   {section_name}: {len(content)} chars")
-        
+    sections = splic_cv_by_section(full_text=full_text)        
         
     text_splitters =  RecursiveCharacterTextSplitter(
         chunk_size = 1000,
@@ -78,7 +72,6 @@ def upload_cv(pdf_file, user_id:str, replace: bool = True, namespace: str | None
     )
     
     chunks = text_splitters.split_documents(documents)
-    print(f"📊 Chunk sizes: {[len(c.page_content) for c in chunks[:5]]}...")
     filename = os.path.basename(pdf_file.name)
     filename_noext = os.path.splitext(filename)[0]
     
@@ -94,18 +87,15 @@ def upload_cv(pdf_file, user_id:str, replace: bool = True, namespace: str | None
         if not section_content.strip():
             continue
         
-        # Create a document for this section
         section_doc = Document(
             page_content=section_content,
             metadata={"section": section_name}
         )
         
-        # Chunk this section
         section_chunks = text_splitters.split_documents([section_doc])
         
         section_counts[section_name] = len(section_chunks)
         
-        # Add metadata to each chunk
         for chunk_idx, chunk in enumerate(section_chunks):
             chunk_id = f"user_{user_id}_{filename_noext}_chunk{chunk_counter}"
             
@@ -113,10 +103,10 @@ def upload_cv(pdf_file, user_id:str, replace: bool = True, namespace: str | None
                 "id": chunk_id,
                 "source": filename,
                 "doc_type": "user_cv",
-                "section": section_name,  # 🎯 SECTION TAG
+                "section": section_name,  
                 "title": filename_noext[:80],
                 "chunk_index": chunk_counter,
-                "section_chunk_index": chunk_idx,  # Index within this section
+                "section_chunk_index": chunk_idx, 
                 "user_id": str(user_id),
                 "uploaded_at": datetime.utcnow().isoformat() + "Z"
             }
@@ -130,22 +120,12 @@ def upload_cv(pdf_file, user_id:str, replace: bool = True, namespace: str | None
             
             chunk_counter += 1
     
-    print(f"\n📊 Total chunks: {chunk_counter}")
-    print(f"📦 Chunk sizes: {[len(c.page_content) for c in enhanced_chunks[:5]]}...")
+
     
-    print("\n📂 CHUNKS PER SECTION:")
-    for section, count in section_counts.items():
-        print(f"   {section}: {count} chunks")
-    
-    print("\n📋 CHUNK SAMPLES (with sections):")
-    # Show one sample from each section
     shown_sections = set()
     for chunk in enhanced_chunks:
         section = chunk.metadata.get('section', 'unknown')
         if section not in shown_sections:
-            print(f"\n--- [{section.upper()}] ({len(chunk.page_content)} chars) ---")
-            print(chunk.page_content[:350])
-            print("...")
             shown_sections.add(section)
             if len(shown_sections) >= 4:  # Show max 4 samples
                 break

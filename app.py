@@ -169,7 +169,7 @@ def stream_response(company_profile, job_desc):
         
         all_cv_results = vectorstore.query( # type: ignore
             query_texts=[job_desc],
-            n_results=cv_results * 5,  # Get more to filter manually
+            n_results=cv_results * 5,  
             where={"doc_type": "user_cv"}
         )
         
@@ -185,7 +185,6 @@ def stream_response(company_profile, job_desc):
                 metadata = example_results['metadatas'][0][i] if example_results['metadatas'] else {} # type: ignore
                 example_docs.append(Document(page_content=content, metadata=metadata))
 
-        # Process CV docs
         all_cv_docs = []
         if all_cv_results['documents']:
             for i, content in enumerate(all_cv_results['documents'][0]): # type: ignore
@@ -206,12 +205,6 @@ def stream_response(company_profile, job_desc):
         certificate_docs = filter_docs_by_section(all_cv_docs, "certificates")[:cv_results]
         skills_docs = filter_docs_by_section(all_cv_docs, "skills")[:cv_results]
         
-        print(f"Summary: {len(summary_docs)}")        
-        print(f"Projects: {len(projects_docs)}")
-        print(f"Experience: {len(experience_docs)}")
-        print(f"Education: {len(education_docs)}")
-        print(f"Certificates: {len(certificate_docs)}")
-        print(f"Skills: {len(skills_docs)}")
         
         example_knowledge = "\n\n".join([doc.page_content for doc in example_docs])
         cv_knowledge = f"""
