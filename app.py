@@ -1,7 +1,6 @@
 from langchain.agents import create_agent
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.tools import tool
-from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.messages import ToolMessage
 from langchain.agents.middleware import wrap_tool_call, ModelCallLimitMiddleware
@@ -16,8 +15,6 @@ import requests
 from langsmith import traceable
 import os
 import json
-from guardrails import Guard
-from guardrails.hub import ToxicLanguage, ValidLength
 from helpers.gradio_helpers import upload_button_handler, delete_button_click
 from chroma_config import client
 
@@ -47,10 +44,6 @@ human_model = AutoModelForSeq2SeqLM.from_pretrained('Vamsi/T5_Paraphrase_Paws').
 
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-input_guard = Guard().use_many(
-    ToxicLanguage(threshold=0.5, validation_method="sentence", on_fail="filter"), # type: ignore
-    ValidLength(min=40, max = 5000, on_fail="exception") # type: ignore
-)
 vectorstore = _get_collection()
 
 def add_human_touch(text:str) -> str:
@@ -106,8 +99,7 @@ def humanize_text(text: str) -> str:
     
     result = '\n\n'.join(humanized_paragraph)
     final_result = add_human_touch(result)
-    guarded_res = input_guard.validate(final_result)
-    return guarded_res # type: ignore
+    return final_result 
     
 
 @tool
@@ -156,10 +148,6 @@ def stream_response(company_profile, job_desc):
         
         company_profile = str(company_profile)
         job_desc = str(job_desc)
-
-        print(job_desc)
-        input_guard.validate(company_profile.strip())
-        input_guard.validate(job_desc.strip())
         
         example_results = vectorstore.query( # type: ignore
             query_texts = [company_profile + " " + job_desc], 
@@ -279,7 +267,6 @@ def stream_response(company_profile, job_desc):
             "messages":[HumanMessage(content=rag_prompt)]})
         
         draft = result['messages'][-1].content
-        input_guard.validate(draft)
         yield draft
     
 def create_app():

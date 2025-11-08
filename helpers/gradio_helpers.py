@@ -1,4 +1,3 @@
-import gradio as gr
 import uuid
 import os
 from file_handler.upload_cv import upload_cv, delete_user_cv 
