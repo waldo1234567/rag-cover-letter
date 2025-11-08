@@ -8,6 +8,8 @@ chromadb>=1.2.0
 langchain-google-genai>=3.0.1
 langchain_huggingface>=1.0.0
 
+sentence-transformers
+
 gradio>=5.49.0
 requests>=2.32.5
 
